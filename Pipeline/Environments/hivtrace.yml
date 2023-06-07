@@ -1,0 +1,15 @@
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+  - pypi
+dependencies:
+  - numpy
+  - biopython
+  - cython
+  - python=3
+  - hivtrace
+  - tn93
+  
+
+
