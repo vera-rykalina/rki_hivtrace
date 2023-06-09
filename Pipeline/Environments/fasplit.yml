@@ -5,3 +5,6 @@ channels:
 dependencies:
   - python
   - ucsc-fasplit
+  - pip
+  - pip:
+     - regex-rename

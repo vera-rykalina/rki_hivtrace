@@ -4,12 +4,19 @@ channels:
   - defaults
   - pypi
 dependencies:
-  - numpy
-  - biopython
-  - cython
-  - python=3
-  - hivtrace
+  - python=3.9
   - tn93
+  - pip
+  - hivtrace
+  - pip:
+    - cython==0.29.34
+    - fakemp==0.9.1
+    - numpy==1.23.5
+    - tornado==6.3
+    - bioext==0.20.4
+    - biopython==1.78
+    - hivtrace==0.6.2
+
   
 
 
