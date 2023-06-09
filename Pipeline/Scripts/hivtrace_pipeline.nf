@@ -1,7 +1,9 @@
 nextflow.enable.dsl = 2
 
+// HPC
+//projectDir = "/home/rykalinav/scratch/rki_hivtrace/Pipeline"
+// Linux
 projectDir = "/home/beast2/rki_hivtrace/Pipeline"
-
 
 params.outdir = null
 if (!params.outdir) {
@@ -34,6 +36,7 @@ workflow {
     ch_core_test_list = ch_core_refs.combine(ch_split_fasta.flatten())
     ch_core_test_concatinated  = CONCAT_CORE_TEST(ch_core_test_list)
     ch_hivtrace = HIVTRACE(ch_core_test_concatinated)
+    ch_network = HIVNETWORKCSV(ch_hivtrace)
 }
 
 
@@ -59,21 +62,22 @@ process CONCAT_CORE_TEST {
   input:
     path fastas
   output:
-    path "${fastas[1].getBaseName()}_test_core.fasta"
+    path "${fastas[1].getBaseName()}.fas"
   script:
   """
-  cat ${fastas[0]} ${fastas[1]} > ${fastas[1].getBaseName()}_test_core.fasta
+  cat ${fastas[0]} ${fastas[1]} > ${fastas[1].getBaseName()}.fas
   """
 }
 
 process HIVTRACE {
   conda "${projectDir}/Environments/hivtrace.yml"
+  //conda "/home/rykalinav/.conda/envs/hivtrace_training"
   publishDir "${params.outdir}/03_hivtrace", mode: "copy", overwrite: true
   
   input:
     path fasta
-  output:
-    path "${fasta.getBaseName().split("_")[0]}_user.tn93output.csv"
+  output: 
+    path "*_tn93.csv"
   script:
   """
     hivtrace \\
@@ -82,7 +86,26 @@ process HIVTRACE {
        -r HXB2_prrt \\
        -t 0.015 \\
        -m 500 \\
-       -g 0.05 \\
-       -o ${fasta.getBaseName().split("_")[0]}_user.tn93output.csv
+       -g 0.05 
+    
+    mv ${fasta}_user.tn93output.csv  ${fasta.getBaseName()}_tn93.csv
+    
+  """
+}
+
+process HIVNETWORKCSV {
+  conda "${projectDir}/Environments/hivtrace.yml"
+  //conda "/home/rykalinav/.conda/envs/hivtrace_training"
+  publishDir "${params.outdir}/04_hivnetwork", mode: "copy", overwrite: true
+  
+  input:
+    path csv
+  output: 
+    path "*"
+  script:
+  """
+    hivnetworkcsv \\
+      -i ${csv} \\
+      -c ${csv.getBaseName().split("_")[0]}_network.csv
   """
 }
