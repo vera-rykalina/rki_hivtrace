@@ -15,7 +15,7 @@ for infilename in sys.argv[1:]:
     for df in dfs:
         df.rename({"ClusterID": newcolname}, axis = 1, inplace = True)
 
-
+# Merge dfs
 df = dfs[0]
 for df_ in dfs[1:]:
     df = df.merge(df_, on = "SequenceID", how = "inner")
