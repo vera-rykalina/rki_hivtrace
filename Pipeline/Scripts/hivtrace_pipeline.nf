@@ -1,9 +1,16 @@
 nextflow.enable.dsl = 2
 
 // HPC
-//projectDir = "/home/rykalinav/scratch/rki_hivtrace/Pipeline"
+projectDir = "/home/rykalinav/scratch/rki_hivtrace/Pipeline"
 // Linux
-projectDir = "/home/beast2/rki_hivtrace/Pipeline"
+//projectDir = "/home/beast2/rki_hivtrace/Pipeline"
+
+// Run
+/* nextflow Scripts/hivtrace_pipeline.nf 
+   --outdir Results 
+   -c Scripts/rki_profile.config 
+   -profile rki_slurm,rki_mamba
+*/
 
 params.outdir = null
 if (!params.outdir) {
@@ -20,7 +27,7 @@ if (!params.outdir) {
 // Add fake date, if needed
 //sed -i 's/>.*/&|02022022/' file.fasta
 
-// ALternative
+// Alternative
 /*
 cat ${testfastas} | awk '{
         if (substr(\$0, 1, 1)==">") {filename=(substr(\$1,2) ".fasta")}
@@ -36,7 +43,8 @@ workflow {
     ch_core_test_list = ch_core_refs.combine(ch_split_fasta.flatten())
     ch_core_test_concatinated  = CONCAT_CORE_TEST(ch_core_test_list)
     ch_hivtrace = HIVTRACE(ch_core_test_concatinated)
-    ch_network = HIVNETWORKCSV(ch_hivtrace)
+    ch_network = HIVNETWORKCSV(ch_hivtrace.csv)
+    ch_csv_join = JOIN_CSVNETWORK(ch_network.csvnetwork.collect())
 }
 
 
@@ -70,14 +78,16 @@ process CONCAT_CORE_TEST {
 }
 
 process HIVTRACE {
-  conda "${projectDir}/Environments/hivtrace.yml"
-  //conda "/home/rykalinav/.conda/envs/hivtrace_training"
+  //conda "${projectDir}/Environments/hivtrace.yml"
+  conda "/home/rykalinav/.conda/envs/hivtrace_training"
   publishDir "${params.outdir}/03_hivtrace", mode: "copy", overwrite: true
   
   input:
     path fasta
   output: 
-    path "*_tn93.csv"
+    path "*_tn93.csv", emit: csv
+    path "*.json", emit: json
+   
   script:
   """
     hivtrace \\
@@ -89,23 +99,42 @@ process HIVTRACE {
        -g 0.05 
     
     mv ${fasta}_user.tn93output.csv  ${fasta.getBaseName()}_tn93.csv
-    
+    mv ${fasta}.results.json  ${fasta.getBaseName()}.json
+ 
   """
 }
 
 process HIVNETWORKCSV {
-  conda "${projectDir}/Environments/hivtrace.yml"
-  //conda "/home/rykalinav/.conda/envs/hivtrace_training"
+  //conda "${projectDir}/Environments/hivtrace.yml"
+  conda "/home/rykalinav/.conda/envs/hivtrace_training"
   publishDir "${params.outdir}/04_hivnetwork", mode: "copy", overwrite: true
   
   input:
     path csv
   output: 
-    path "*"
+    path "*.csv", emit: csvnetwork
+    path "*.json", emit: jsonnetwork
   script:
   """
     hivnetworkcsv \\
       -i ${csv} \\
-      -c ${csv.getBaseName().split("_")[0]}_network.csv
+      -c ${csv.getBaseName().split("_")[0]}_network.csv \\
+      -j \\
+      -O ${csv.getBaseName().split("_")[0]}_network.json \\
+
+  """
+}
+
+process JOIN_CSVNETWORK {
+  conda "/home/rykalinav/.conda/envs/python3"
+  publishDir "${params.outdir}/05_joined_csvnetwork", mode: "copy", overwrite: true
+  
+  input:
+    path csvnetworkfiles
+  output:
+    path "joined_csvnetwork_tables.csv"
+  script:
+  """
+    join_csvnetwork_tables.py ${csvnetworkfiles}
   """
 }
