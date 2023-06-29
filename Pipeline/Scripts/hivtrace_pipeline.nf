@@ -37,6 +37,7 @@ cat ${testfastas} | awk '{
 
 ch_core_refs = Channel.fromPath("${projectDir}/CoreSequences/*.fas")
 ch_test_refs = Channel.fromPath("${projectDir}/TestSequences/*.fas")
+ch_tree = Channel.fromPath("${projectDir}/Tree/*.trees")
 
 workflow {
     ch_split_fasta  = SPLIT_FASTA(ch_test_refs)
@@ -45,6 +46,7 @@ workflow {
     ch_hivtrace = HIVTRACE(ch_core_test_concatinated)
     ch_network = HIVNETWORKCSV(ch_hivtrace.csv)
     ch_csv_join = JOIN_CSVNETWORK(ch_network.csvnetwork.collect())
+    ch_color_tree = TREE_COLORING(ch_tree.combine(ch_network.jsonnetwork.flatten()))
 }
 
 
@@ -136,5 +138,21 @@ process JOIN_CSVNETWORK {
   script:
   """
     join_csvnetwork_tables.py ${csvnetworkfiles}
+  """
+}
+
+process TREE_COLORING {
+  conda "/home/rykalinav/.conda/envs/python3"
+  publishDir "${params.outdir}/06_colored_trees", mode: "copy", overwrite: true
+  
+  input:
+    path tree_json
+   
+  // tree_json[0] - tree file, tree_json[1] - json file
+  output:
+    path "${tree_json[1].getBaseName().split("_")[0]}_colored.tree"
+  script:
+  """
+    color_tree.py -t ${tree_json[0]} -j ${tree_json[1]} -o ${tree_json[1].getBaseName().split("_")[0]}_colored.tree
   """
 }
