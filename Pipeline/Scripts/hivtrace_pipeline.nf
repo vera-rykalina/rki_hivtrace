@@ -107,7 +107,6 @@ process HIVTRACE {
 }
 
 process HIVNETWORKCSV {
-  //conda "${projectDir}/Environments/hivtrace.yml"
   conda "/home/rykalinav/.conda/envs/hivtrace_training"
   publishDir "${params.outdir}/04_hivnetwork", mode: "copy", overwrite: true
   
@@ -128,7 +127,7 @@ process HIVNETWORKCSV {
 }
 
 process JOIN_CSVNETWORK {
-  conda "/home/rykalinav/.conda/envs/python3"
+  conda "${projectDir}/Environments/python3.yml"
   publishDir "${params.outdir}/05_joined_csvnetwork", mode: "copy", overwrite: true
   
   input:
@@ -142,7 +141,7 @@ process JOIN_CSVNETWORK {
 }
 
 process TREE_COLORING {
-  conda "/home/rykalinav/.conda/envs/python3"
+  conda "${projectDir}/Environments/python3.yml"
   publishDir "${params.outdir}/06_colored_trees", mode: "copy", overwrite: true
   
   input:
