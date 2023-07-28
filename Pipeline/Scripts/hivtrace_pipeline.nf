@@ -45,9 +45,10 @@ workflow {
     ch_core_test_concatinated  = CONCAT_CORE_TEST(ch_core_test_list)
     ch_hivtrace = HIVTRACE(ch_core_test_concatinated)
     ch_network = HIVNETWORKCSV(ch_hivtrace.csv)
-    ch_db_csvnetwork = ch_db.combine(ch_network.csvnetwork.collect())
-    ch_csv_join = JOIN_CSVNETWORK(ch_db_csvnetwork)
-    ch_color_tree = TREE_COLORING(ch_tree.combine(ch_network.jsonnetwork.flatten()))
+    ch_cluster = SELECT_CLUSTER(ch_network.csvnetwork)
+    //ch_db_csvnetwork = ch_db.combine(ch_network.csvnetwork.collect())
+    //ch_csv_join = JOIN_CSVNETWORK(ch_db_csvnetwork)
+    //ch_color_tree = TREE_COLORING(ch_tree.combine(ch_network.jsonnetwork.flatten()))
 }
 
 
@@ -127,23 +128,10 @@ process HIVNETWORKCSV {
   """
 }
 
-process JOIN_CSVNETWORK {
-  conda "${projectDir}/Environments/python3.yml"
-  publishDir "${params.outdir}/05_joined_csvnetwork", mode: "copy", overwrite: true
-  
-  input:
-    path dbnetworkfiles
-  output:
-    path "joined_csvnetwork_tables.csv"
-  script:
-  """
-    join_csvnetwork_tables.py ${dbnetworkfiles}
-  """
-}
 
 process TREE_COLORING {
   conda "${projectDir}/Environments/python3.yml"
-  publishDir "${params.outdir}/06_colored_trees", mode: "copy", overwrite: true
+  publishDir "${params.outdir}/05_colored_trees", mode: "copy", overwrite: true
   
   input:
     path tree_json
@@ -154,5 +142,35 @@ process TREE_COLORING {
   script:
   """
     color_tree.py -t ${tree_json[0]} -j ${tree_json[1]} -o ${tree_json[1].getBaseName().split("_")[0]}_colored.tree
+  """
+}
+
+process SELECT_CLUSTER {
+  conda "${projectDir}/Environments/python3.yml"
+  publishDir "${params.outdir}/06_clusters", mode: "copy", overwrite: true
+  
+  input:
+    path csvworkfile
+  output:
+    path "*"
+  script:
+  """
+    find_group.py ${csvworkfile}
+  """
+}
+
+
+
+process JOIN_CSVNETWORK {
+  conda "${projectDir}/Environments/python3.yml"
+  publishDir "${params.outdir}/07_joined_csvnetwork", mode: "copy", overwrite: true
+  
+  input:
+    path dbnetworkfiles
+  output:
+    path "joined_csvnetwork_tables.csv"
+  script:
+  """
+    join_csvnetwork_tables.py ${dbnetworkfiles}
   """
 }
