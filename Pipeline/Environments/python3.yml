@@ -1,9 +1,11 @@
 channels:
   - bioconda
+  - anaconda 
   - conda-forge
   - defaults
 dependencies:
   - python=3.11
   - pandas
+  - openpyxl
   - numpy
   - pip
