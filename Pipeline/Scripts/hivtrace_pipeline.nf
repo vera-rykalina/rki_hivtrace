@@ -34,7 +34,7 @@ cat ${testfastas} | awk '{
         print \$0 >> filename }' */
 
 
-
+ch_db = Channel.fromPath("${projectDir}/Database/*.xlsx", checkIfExists: true)
 ch_core_refs = Channel.fromPath("${projectDir}/CoreSequences/*.fas")
 ch_test_refs = Channel.fromPath("${projectDir}/TestSequences/*.fas")
 ch_tree = Channel.fromPath("${projectDir}/Tree/*.trees")
@@ -45,7 +45,8 @@ workflow {
     ch_core_test_concatinated  = CONCAT_CORE_TEST(ch_core_test_list)
     ch_hivtrace = HIVTRACE(ch_core_test_concatinated)
     ch_network = HIVNETWORKCSV(ch_hivtrace.csv)
-    ch_csv_join = JOIN_CSVNETWORK(ch_network.csvnetwork.collect())
+    ch_db_csvnetwork = ch_db.combine(ch_network.csvnetwork.collect())
+    ch_csv_join = JOIN_CSVNETWORK(ch_db_csvnetwork)
     ch_color_tree = TREE_COLORING(ch_tree.combine(ch_network.jsonnetwork.flatten()))
 }
 
@@ -131,12 +132,12 @@ process JOIN_CSVNETWORK {
   publishDir "${params.outdir}/05_joined_csvnetwork", mode: "copy", overwrite: true
   
   input:
-    path csvnetworkfiles
+    path dbnetworkfiles
   output:
     path "joined_csvnetwork_tables.csv"
   script:
   """
-    join_csvnetwork_tables.py ${csvnetworkfiles}
+    join_csvnetwork_tables.py ${dbnetworkfiles}
   """
 }
 
