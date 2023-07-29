@@ -23,6 +23,7 @@ for infilename in sys.argv[1:]:
         ht_df = ht_df.iloc[:, [-1, 0] + list(range(1, ht_df.shape[1] - 1 ))]
         ht_df.drop(["SequenceID"], axis = 1, inplace = True)
 
+
 # Extract only a cluster which associated with a new sample from csvnetwork df
 sample = ht_df["Scount"].isin([new_sample])
 print(ht_df[sample].dtypes)
@@ -38,7 +39,8 @@ for i, row in ht_df.iterrows():
         print(ht_df)
 
        
-
+# Groupby and aggregate to get a list of Scounts 
 ht_groupped = ht_df.groupby(["ClusterID"]).agg({"Scount": list}).reset_index()
+
 # Create clean output csv
 ht_groupped.to_csv("cluster_" + new_sample + ".csv", sep = ",", index = False, encoding = "utf-8")
