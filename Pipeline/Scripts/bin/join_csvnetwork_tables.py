@@ -18,11 +18,11 @@ for infilename in sys.argv[1:]:
     else:
         dfs.append(pd.read_csv(infilename, sep = ",", index_col=False))
         for df_ in dfs:
-            # Create "Scount" columns bases on "ID|fakedate" (extract our internal ID)
+            # Create "Scount" column based on "ID|fakedate" (extract our internal ID)
             df_["Scount"] = df_["SequenceID"].str.extract("(\d{2}-\d{5})\|02022022", expand = True)
-            # Remove a column
-            #df_.drop(["SequenceID"], errors="ignore", axis=1, inplace=True)
+            # Rename a column
             df_.rename({"ClusterID": newcolname}, axis = 1, inplace = True)
+            # Double check the code line below (not needed anymore)
             df_ = df_[~df_["Scount"].isin([newcolname])]
             print(df_)
 
@@ -31,6 +31,7 @@ for infilename in sys.argv[1:]:
 for df_ in dfs[0:]:
     # Remove a column
     df_.drop(["SequenceID"], errors="ignore", axis=1, inplace=True)
+    # Merge based on "Scount"
     df = df.merge(df_, on="Scount", how="left")
 print(df)
 
