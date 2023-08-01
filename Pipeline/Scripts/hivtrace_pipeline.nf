@@ -85,8 +85,8 @@ process CONCAT_CORE_TEST {
 }
 
 process HIVTRACE {
-  //conda "${projectDir}/Environments/hivtrace.yml"
-  conda "/home/rykalinav/.conda/envs/hivtrace_training"
+  conda "${projectDir}/Environments/hivtrace.yml"
+  //conda "/home/rykalinav/.conda/envs/hivtrace_training"
   publishDir "${params.outdir}/03_hivtrace", mode: "copy", overwrite: true
   
   input:
@@ -112,7 +112,8 @@ process HIVTRACE {
 }
 
 process HIVNETWORKCSV {
-  conda "/home/rykalinav/.conda/envs/hivtrace_training"
+  conda "${projectDir}/Environments/hivtrace.yml"
+  //conda "/home/rykalinav/.conda/envs/hivtrace_training"
   publishDir "${params.outdir}/04_hivnetwork", mode: "copy", overwrite: true
   
   input:
@@ -130,7 +131,6 @@ process HIVNETWORKCSV {
 
   """
 }
-
 
 process TREE_COLORING {
   conda "${projectDir}/Environments/python3.yml"
