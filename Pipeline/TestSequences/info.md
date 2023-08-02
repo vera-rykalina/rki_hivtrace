@@ -1,1 +1,1 @@
-Add Test_SubA1.fas to  this folder.
+Add Test_SubA1.fas to this folder.
