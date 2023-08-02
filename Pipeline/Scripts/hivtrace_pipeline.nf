@@ -40,18 +40,18 @@ ch_test_refs = Channel.fromPath("${projectDir}/TestSequences/*.fas", checkIfExis
 ch_tree = Channel.fromPath("${projectDir}/Tree/*.trees", checkIfExists: true)
 
 workflow {
+    //*******************************HIVTRACE*************************************
     ch_split_fasta  = SPLIT_FASTA(ch_test_refs)
     ch_core_test_list = ch_core_refs.combine(ch_split_fasta.flatten())
     ch_core_test_concatinated  = CONCAT_CORE_TEST(ch_core_test_list)
     ch_hivtrace = HIVTRACE(ch_core_test_concatinated)
     ch_network = HIVNETWORKCSV(ch_hivtrace.csv)
+    //*******************************COLORING*************************************
     ch_color_tree = TREE_COLORING(ch_tree.combine(ch_network.jsonnetwork.flatten()))
-    //*************************************************
+    //*******************************TESTS*************************************
     ch_db_csvnetwork = ch_db.combine(ch_network.csvnetwork.collect())
     ch_csv_join = JOIN_CSVNETWORK(ch_db_csvnetwork)
-
     ch_cluster = SELECT_CLUSTER(ch_network.csvnetwork)
-    
 }
 
 
@@ -97,12 +97,12 @@ process HIVTRACE {
    
   script:
   """
-    hivtrace \\
-       -i ${fasta} \\
-       -a resolve \\
-       -r HXB2_prrt \\
-       -t 0.015 \\
-       -m 500 \\
+    hivtrace \
+       -i ${fasta} \
+       -a resolve \
+       -r HXB2_prrt \
+       -t 0.015 \
+       -m 500 \
        -g 0.05 
     
     mv ${fasta}_user.tn93output.csv  ${fasta.getBaseName()}_tn93.csv
@@ -123,11 +123,11 @@ process HIVNETWORKCSV {
     path "*.json", emit: jsonnetwork
   script:
   """
-    hivnetworkcsv \\
-      -i ${csv} \\
-      -c ${csv.getBaseName().split("_")[0]}_network.csv \\
-      -j \\
-      -O ${csv.getBaseName().split("_")[0]}_network.json \\
+    hivnetworkcsv \
+      -i ${csv} \
+      -c ${csv.getBaseName().split("_")[0]}_network.csv \
+      -j \
+      -O ${csv.getBaseName().split("_")[0]}_network.json \
 
   """
 }
@@ -144,7 +144,10 @@ process TREE_COLORING {
     path "${tree_json[1].getBaseName().split("_")[0]}_colored.tree"
   script:
   """
-    color_tree.py -t ${tree_json[0]} -j ${tree_json[1]} -o ${tree_json[1].getBaseName().split("_")[0]}_colored.tree
+    color_tree.py \
+      -t ${tree_json[0]} \
+      -j ${tree_json[1]} \
+      -o ${tree_json[1].getBaseName().split("_")[0]}_colored.tree
   """
 }
 
