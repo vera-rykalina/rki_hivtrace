@@ -35,9 +35,9 @@ cat ${testfastas} | awk '{
 
 
 ch_db = Channel.fromPath("${projectDir}/Database/SubA1_GesamtDatensatz_inklCluster.xlsx", checkIfExists: true)
-ch_core_refs = Channel.fromPath("${projectDir}/CoreSequences/*.fas")
-ch_test_refs = Channel.fromPath("${projectDir}/TestSequences/*.fas")
-ch_tree = Channel.fromPath("${projectDir}/Tree/*.trees")
+ch_core_refs = Channel.fromPath("${projectDir}/CoreSequences/*.fas", checkIfExists: true)
+ch_test_refs = Channel.fromPath("${projectDir}/TestSequences/*.fas", checkIfExists: true)
+ch_tree = Channel.fromPath("${projectDir}/Tree/*.trees", checkIfExists: true)
 
 workflow {
     ch_split_fasta  = SPLIT_FASTA(ch_test_refs)
