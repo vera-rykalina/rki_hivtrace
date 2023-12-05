@@ -34,7 +34,7 @@ cat ${testfastas} | awk '{
         print \$0 >> filename }' */
 
 
-ch_db = Channel.fromPath("${projectDir}/Database/SubA1_GesamtDatensatz_inklCluster.xlsx", checkIfExists: true)
+//ch_db = Channel.fromPath("${projectDir}/Database/SubA1_GesamtDatensatz_inklCluster.xlsx", checkIfExists: true)
 ch_core_refs = Channel.fromPath("${projectDir}/CoreSequences/*.fas", checkIfExists: true)
 ch_test_refs = Channel.fromPath("${projectDir}/TestSequences/*.fas", checkIfExists: true)
 ch_tree = Channel.fromPath("${projectDir}/Tree/*.trees", checkIfExists: true)
@@ -49,9 +49,9 @@ workflow {
     //*******************************COLORING*************************************
     ch_color_tree = TREE_COLORING(ch_tree.combine(ch_network.jsonnetwork.flatten()))
     //*******************************TESTS*************************************
-    ch_db_csvnetwork = ch_db.combine(ch_network.csvnetwork.collect())
-    ch_csv_join = JOIN_CSVNETWORK(ch_db_csvnetwork)
-    ch_cluster = SELECT_CLUSTER(ch_network.csvnetwork)
+    //ch_db_csvnetwork = ch_db.combine(ch_network.csvnetwork.collect())
+    //ch_csv_join = JOIN_CSVNETWORK(ch_db_csvnetwork)
+    //ch_cluster = SELECT_CLUSTER(ch_network.csvnetwork)
 }
 
 
@@ -92,6 +92,7 @@ process HIVTRACE {
   input:
     path fasta
   output: 
+    path "*_drams.fasta", emit: nodrams
     path "*_tn93.csv", emit: csv
     path "*.json", emit: json
    
@@ -103,8 +104,10 @@ process HIVTRACE {
        -r HXB2_prrt \
        -t 0.015 \
        -m 500 \
-       -g 0.05 
+       -g 0.05 \
+       -s wheeler
     
+    mv ${fasta}_output.fasta ${fasta.getBaseName()}_drams.fasta
     mv ${fasta}_user.tn93output.csv  ${fasta.getBaseName()}_tn93.csv
     mv ${fasta}.results.json  ${fasta.getBaseName()}.json
  
