@@ -6,3 +6,6 @@ Pipeline/.nextflow
 Pipeline/Test/
 Pipeline/work/
 Pipeline/conda/
+*Results*
+Pipeline/OldData
+Pipeline/Preprocced
